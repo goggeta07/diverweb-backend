@@ -28,7 +28,7 @@ const upload = multer({ storage: storage });
 // Conexión directa a tu XAMPP
 const db = mysql.createPool({
     host: '31.97.208.156',
-    user: 'u365087007_raiz',
+    user: 'u365087007_root',
     password: 'Diverweb1530',
     database: 'u365087007_diverweb',
     waitForConnections: true,
