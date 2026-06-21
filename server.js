@@ -227,27 +227,35 @@ app.get('/api/reservaciones', (req, res) => {
         db.query(querySalon, paramsSalon, (err2, resultsSalon) => {
             if (err2) console.error("Error en querySalon:", err2);
 
-            const rFecha = (resultsFecha || []).map(r => ({
-                id: r.id || r.id_apfecha || r.ID,
-                nombre_servicio: "Servicio Externo",
-                fecha: r.FECHA_EVENTO,
-                hora: r.HORA_INICIO,
-                tipo: r.TIPO_EVENTO,
-                estado: r.estado || 'PENDIENTE',
-                tipo_reserva: r.tipo_reserva,
-                nombre_cliente: r.nombre_cliente
-            }));
+            const rFecha = (resultsFecha || []).map(r => {
+                const fechaLimpia = r.FECHA_EVENTO ? (r.FECHA_EVENTO.includes(' ') ? r.FECHA_EVENTO.split(' ')[0] : r.FECHA_EVENTO) : null;
+                const horaLimpia = r.HORA_INICIO ? r.HORA_INICIO.replace(' ', 'T') : null;
+                return {
+                    id: r.id || r.id_apfecha || r.ID,
+                    nombre_servicio: "Servicio Externo",
+                    fecha: fechaLimpia ? `${fechaLimpia}T12:00:00` : null,
+                    hora: horaLimpia,
+                    tipo: r.TIPO_EVENTO,
+                    estado: r.estado || 'PENDIENTE',
+                    tipo_reserva: r.tipo_reserva,
+                    nombre_cliente: r.nombre_cliente
+                };
+            });
 
-            const rSalon = (resultsSalon || []).map(r => ({
-                id: r.id || r.id_apsalon || r.ID,
-                nombre_servicio: r.NOMBRE || "Salón de Fiestas",
-                fecha: r.FECHA_EVENTO,
-                hora: r.HORA_INICIO,
-                tipo: r.TIPO_EVENTO,
-                estado: r.estado || 'PENDIENTE',
-                tipo_reserva: r.tipo_reserva,
-                nombre_cliente: r.nombre_cliente
-            }));
+            const rSalon = (resultsSalon || []).map(r => {
+                const fechaLimpia = r.FECHA_EVENTO ? (r.FECHA_EVENTO.includes(' ') ? r.FECHA_EVENTO.split(' ')[0] : r.FECHA_EVENTO) : null;
+                const horaLimpia = r.HORA_INICIO ? r.HORA_INICIO.replace(' ', 'T') : null;
+                return {
+                    id: r.id || r.id_apsalon || r.ID,
+                    nombre_servicio: r.NOMBRE || "Salón de Fiestas",
+                    fecha: fechaLimpia ? `${fechaLimpia}T12:00:00` : null,
+                    hora: horaLimpia,
+                    tipo: r.TIPO_EVENTO,
+                    estado: r.estado || 'PENDIENTE',
+                    tipo_reserva: r.tipo_reserva,
+                    nombre_cliente: r.nombre_cliente
+                };
+            });
 
             const combined = [...rFecha, ...rSalon].sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
             res.status(200).json(combined);
