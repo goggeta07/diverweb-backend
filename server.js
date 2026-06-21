@@ -51,6 +51,12 @@ db.getConnection((err, connection) => {
         return;
     }
     console.log('¡Backend conectado a MySQL en XAMPP usando Pool!');
+
+    // Auto-crear columna PROVEEDOR para los comentarios si no existe
+    connection.query('ALTER TABLE contacto ADD COLUMN PROVEEDOR VARCHAR(150) NULL', (err) => { });
+    // Auto-crear columna CALIFICACION para los comentarios
+    connection.query('ALTER TABLE contacto ADD COLUMN CALIFICACION INT NULL DEFAULT 5', (err) => { });
+
     connection.release();
 });
 
@@ -118,11 +124,12 @@ app.post('/api/apartar_salon', (req, res) => {
 });
 // NUEVA RUTA: Para guardar mensajes de contacto
 app.post('/api/contacto', upload.single('imagen'), (req, res) => {
-    const { nombre, correo, mensaje } = req.body;
+    const { nombre, correo, mensaje, proveedor, calificacion } = req.body;
     const imagenPath = req.file ? `/uploads/${req.file.filename}` : null;
+    const calif = calificacion ? parseInt(calificacion) : 5;
 
-    const query = 'INSERT INTO contacto (NOMBRE, CORREO, MENSAJE, IMAGEN) VALUES (?, ?, ?, ?)';
-    const params = [nombre, correo, mensaje, imagenPath].map(p => p === undefined ? null : p);
+    const query = 'INSERT INTO contacto (NOMBRE, CORREO, MENSAJE, IMAGEN, PROVEEDOR, CALIFICACION) VALUES (?, ?, ?, ?, ?, ?)';
+    const params = [nombre, correo, mensaje, imagenPath, proveedor || null, calif].map(p => p === undefined ? null : p);
 
     db.query(query, params, (err, result) => {
         if (err) {
@@ -134,9 +141,19 @@ app.post('/api/contacto', upload.single('imagen'), (req, res) => {
 
 // NUEVA RUTA: Para que el administrador vea los comentarios
 app.get('/api/comentarios', (req, res) => {
-    const query = 'SELECT * FROM contacto ORDER BY fecha_envio DESC';
+    const { proveedor } = req.query;
 
-    db.query(query, (err, results) => {
+    let query = 'SELECT * FROM contacto';
+    let params = [];
+
+    if (proveedor) {
+        query += ' WHERE PROVEEDOR = ?';
+        params.push(proveedor);
+    }
+
+    query += ' ORDER BY fecha_envio DESC';
+
+    db.query(query, params, (err, results) => {
         if (err) {
             return res.status(500).json({ error: err.message });
         }
