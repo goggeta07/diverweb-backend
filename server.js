@@ -41,7 +41,8 @@ const db = mysql.createPool({
     database: 'u365087007_diverweb',
     waitForConnections: true,
     connectionLimit: 10,
-    queueLimit: 0
+    queueLimit: 0,
+    dateStrings: true
 });
 
 db.getConnection((err, connection) => {
