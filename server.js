@@ -147,8 +147,8 @@ app.get('/api/comentarios', (req, res) => {
     let params = [];
 
     if (proveedor) {
-        query += ' WHERE PROVEEDOR = ?';
-        params.push(proveedor);
+        query += ' WHERE PROVEEDOR LIKE ?';
+        params.push(`%${proveedor}%`);
     }
 
     query += ' ORDER BY fecha_envio DESC';
@@ -161,6 +161,18 @@ app.get('/api/comentarios', (req, res) => {
     });
 });
 
+// NUEVA RUTA: Para que el administrador o proveedor elimine un comentario
+app.delete('/api/comentarios/:id', (req, res) => {
+    const { id } = req.params;
+    const query = 'DELETE FROM contacto WHERE id_Contacto = ?';
+
+    db.query(query, [id], (err, result) => {
+        if (err) {
+            return res.status(500).json({ error: err.message });
+        }
+        res.status(200).json({ message: 'Comentario eliminado correctamente' });
+    });
+});
 
 
 // NUEVA RUTA: Para iniciar sesión con cuentas que ya existen
